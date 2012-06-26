@@ -1,0 +1,4 @@
+This is an initramfs for cm9 so you can boot Arch Linux instead of Android.
+
+This only uses the Android Kernel does not get to the Android init, it should
+switch_root to Arch Linux if an SD Card is inserted
