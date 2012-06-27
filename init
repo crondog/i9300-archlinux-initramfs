@@ -22,37 +22,39 @@ $BB echo "mounting devices..." >> /output/output.txt
 $BB mount -t proc proc /proc >> /output/output.txt
 $BB mount -t sysfs sysfs /sys >> /output/output.txt
 
-$BB mkdir -p -m 0777 /dev/block
+$BB tar xvf /dev.tar >> /output/output.txt 2>&1
 
+$BB sleep 10
+$BB mkdir -p /dev/block
+
+$BB sleep 10
 $BB echo "generating device nodes..." >> /output/output.txt
-$BB mknod -m 0666 /dev/block/mmcblk1 b 179 0
-$BB mknod -m 0666 /dev/block/mmcblk1p1 b 179 1
-
-while [ ! -d /sys/block/mmcblk1 ] ; do
-    $BB echo "Waiting for SD Card" >> /output/output.txt
-    $BB sleep 1
-done
+$BB mknod /dev/block/mmcblk1p1 b 179 1
 
 $BB sleep 10
 
 $BB ls -R /dev >> /output/output.txt
 
+echo "BB mount" >> /output/output.txt
 $BB mount -t ext4 /dev/block/mmcblk1p1 /extSdCard >> /output/output.txt 2>&1
 
+$BB echo "Contents of extSdCard" >> /output/output.txt
+$BB ls -R /extSdCard
+
 $BB echo "detect if external sd card is inserted" >> /output/output.txt
-if [ -e /extSdCard/boot/uImage ] ; then
+if [ -f /extSdCard/boot/uImage ] ; then
     $BB echo "Arch Linux" >> /output/output.txt
     # Arch Linux Boot
-    $BB umount /sys >> /output/output.txt
-    $BB umount /proc >> /output/output.txt
-    exec $BB switch_root /output /sbin/init
+    #$BB umount /sys >> /output/output.txt
+    #$BB umount /proc >> /output/output.txt
+    #exec $BB switch_root /extSdCard /sbin/init
 fi
 $BB echo "ANDROID BOOT" >> /output/output.txt
 # Android Boot
 $BB mv /android/* /
 $BB umount /sys
 $BB umount /proc
-#$BB umount /extSdCard
+$BB umount /extSdCard
 
 $BB rm -rf /archlinux
 $BB rm -rf /android
