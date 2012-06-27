@@ -22,21 +22,19 @@ $BB echo "mounting devices..." >> /output/output.txt
 $BB mount -t proc proc /proc >> /output/output.txt
 $BB mount -t sysfs sysfs /sys >> /output/output.txt
 
-$BB tar xvf /dev.tar >> /output/output.txt 2>&1
+#$BB tar xvf /dev.tar >> /output/output.txt 2>&1
+$BB mdev -s
 
-$BB sleep 10
 $BB mkdir -p /dev/block
 
-$BB sleep 10
 $BB echo "generating device nodes..." >> /output/output.txt
-$BB mknod /dev/block/mmcblk1p1 b 179 1
-
-$BB sleep 10
+$BB mknod /dev/block/mmcblk1p1 b 179 17
 
 $BB ls -R /dev >> /output/output.txt
 
 echo "BB mount" >> /output/output.txt
-$BB mount -t ext4 /dev/block/mmcblk1p1 /extSdCard >> /output/output.txt 2>&1
+#$BB mount -t ext4 /dev/block/mmcblk1p1 /extSdCard >> /output/output.txt 2>&1
+$BB mount -t ext4 /dev/block/mmcblk1p1 / >> /output/output.txt 2>&1
 
 $BB echo "Contents of extSdCard" >> /output/output.txt
 $BB ls -R /extSdCard
@@ -45,9 +43,12 @@ $BB echo "detect if external sd card is inserted" >> /output/output.txt
 if [ -f /extSdCard/boot/uImage ] ; then
     $BB echo "Arch Linux" >> /output/output.txt
     # Arch Linux Boot
-    #$BB umount /sys >> /output/output.txt
-    #$BB umount /proc >> /output/output.txt
+
+    #Gives bootloop
     #exec $BB switch_root /extSdCard /sbin/init
+
+    #Gets stuck on Samsung Screen
+    exec /sbin/init
 fi
 $BB echo "ANDROID BOOT" >> /output/output.txt
 # Android Boot
