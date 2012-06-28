@@ -3,6 +3,19 @@ This is an initramfs for cm9 so you can boot Arch Linux instead of Android.
 This only uses the Android Kernel does not get to the Android init, it should
 switch_root to Arch Linux if an SD Card is inserted
 
+
+How to build
+Run the following in the directory of the initramfs to generate a ramdisk.img
+
+find . -name .git -a -type d -prune -o -print0 | cpio --null -ov --format=newc | gzip -9 > ../ramdisk.img
+
+For the i9300 run mkbootimg from Cyanogenmod (or however else you want to make
+it for your device)
+
+~/android/system/out/host/linux-x86/bin/mkbootimg --kernel kernel --cmdline console=tty0 --base 0x40000000 --pagesize 2048 --ramdisk ramdisk.img --output boot.img
+
+Flash the boot.img by odin/heimdall or package and then flash with cwm
+
 Thanks to
 gabx
 gokhanmoral (for help with mounting issues)
