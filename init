@@ -10,6 +10,8 @@ BB="/busybox"
 # initialize working dir and log
 cd /
 
+#/android/sbin/adbd &
+
 $BB rm init
 
 $BB echo "generating mount directories..."
@@ -29,41 +31,55 @@ $BB mkdir -p /dev/block
 
 $BB echo "generating device nodes..." >> /output/output.txt
 $BB mknod /dev/block/mmcblk1p1 b 179 17
+$BB mknod /dev/tty c 5 0
+$BB mknod /dev/console c 5 1
+$BB mknod /dev/kmsg c 1 11
 
-$BB ls -R /dev >> /output/output.txt
+$BB ls -R /dev >> /dev/kmsg
 
 echo "BB mount" >> /output/output.txt
-#$BB mount -t ext4 /dev/block/mmcblk1p1 /extSdCard >> /output/output.txt 2>&1
-$BB mount -t ext4 /dev/block/mmcblk1p1 / >> /output/output.txt 2>&1
+$BB mount -t ext4 /dev/block/mmcblk1p1 /extSdCard >> /output/output.txt 2>&1
+#$BB mount -t ext4 /dev/block/mmcblk1p1 / >> /output/output.txt 2>&1
 
 $BB echo "Contents of extSdCard" >> /output/output.txt
 $BB ls -R /extSdCard
 
 $BB echo "detect if external sd card is inserted" >> /output/output.txt
 if [ -f /extSdCard/boot/uImage ] ; then
-    $BB echo "Arch Linux" >> /output/output.txt
+    $BB echo "***Arch Linux***" >> /output/output.txt
+    $BB echo "***Arch Linux***" >> /dev/kmsg
+    $BB cat /proc/kmsg
     # Arch Linux Boot
 
     #Gives bootloop
-    #exec $BB switch_root /extSdCard /sbin/init
+    exec $BB switch_root -c /dev/console /extSdCard /sbin/init
+    #exec $BB sh
 
+    #$BB mkdir /extSdCard/mnt/initfs
+    #$BB cd /extSdCard
+    #$BB pivot_root . /extSdCard/mnt/initfs
+    #exec $BB chroot . /sbin/init 2 <dev/console >dev/console 2>&1
+    
+    
     #Gets stuck on Samsung Screen
-    exec /sbin/init
+    #exec sbin/init
+    #exec $BB sh
+else
+    $BB echo "ANDROID BOOT" >> /output/output.txt
+    # Android Boot
+    $BB mv /android/* /
+    $BB umount /sys
+    $BB umount /proc
+    $BB umount /extSdCard
+
+    $BB rm -rf /archlinux
+    $BB rm -rf /android
+
+    $BB rm -fr /dev/*
+
+    # finally remove busybox
+    $BB rm /busybox
+
+    export PATH="${_PATH}"
+    exec /init
 fi
-$BB echo "ANDROID BOOT" >> /output/output.txt
-# Android Boot
-$BB mv /android/* /
-$BB umount /sys
-$BB umount /proc
-$BB umount /extSdCard
-
-$BB rm -rf /archlinux
-$BB rm -rf /android
-
-$BB rm -fr /dev/*
-
-# finally remove busybox
-$BB rm /busybox
-
-export PATH="${_PATH}"
-exec /init
